@@ -1,0 +1,17 @@
+- name: install boinc pkgs
+  community.general.pacman:
+    name:
+      - boinc
+      - boinctui
+    state: present
+
+- name: start boinc service
+  ansible.builtin.service:
+    name: boinc-client
+    enabled: true
+    state: started
+
+- name: configure boinc
+  ansible.builtin.serviceile:
+    path: /var/lib/boinc/gui_rpc_auth.cfg 
+    line: 
