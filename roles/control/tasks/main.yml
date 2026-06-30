@@ -1,0 +1,84 @@
+- name: configure pacman
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#?Color', line: 'Color' }
+    - { regexp: '^#?ParallelDownloads', line: 'ParallelDownloads = 5' }
+    - { regexp: '^#?VerbosePkgLists', line: 'VerbosePkgLists' }
+
+- name: passwordless pacman
+  ansible.builtin.lineinfile:
+    path: '/etc/sudoers.d/{{ ansible_user }}'
+    line: '{{ ansible_user}} ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+    create: true
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+- name: check for paru
+  ansible.builtin.command: which paru
+  register: paru_check
+  changed_when: false
+  failed_when: false
+
+- name: install paru 
+  when: paru_check != 0
+  block:
+    - name: clone paru repo
+      ansible.builtin.git:
+        repo: https://aur.archlinux.org/paru.git
+        dest: /tmp/paru
+
+    - name: build and install paru
+      ansible.builtin.command: makepkg -si --noconfirm
+      args:
+        chdir: /tmp/paru
+        changed_when: true
+
+- name: install pkgs
+  community.general.pacman:
+    name:
+      - bash-completion
+      - btop
+      - curl
+      - less
+      - lib32-mesa
+      - lib32-vulkan-radeon
+      - man-db
+      - mesa
+      - npm
+      - steam
+      - stow
+      - sway
+      - tmux
+      - tree
+      - vim
+      - vulkan-radeon
+      - waybar
+      - wiremix
+      - xf86-video-amdgpu
+    state: present
+
+- name: install aur pkgs
+  ansible.builtin.command: paru -S librewolf tofi
+
+- name: create default .config
+  ansible.builtin.file:
+    path: ~/.config
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    state: directory
+    mode: '0755'
+
+- name: clone dotfiles repo
+  ansible.builtin.git:
+    repo: 'git@github.com:spencerdennison/dotfiles.git'
+    dest: ~/dotfiles
+    key_file: ~/.ssh/github
+    accept_hostkey: true
+
+- name: symlink .config
+  ansible.builtin.command: stow .
+  args:
+    chdir: ~/dotfiles
