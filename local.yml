@@ -1,0 +1,7 @@
+- name: setup control node
+  hosts: control 
+  become: true
+  become_user:
+  roles:
+    - control
+    - boinc
