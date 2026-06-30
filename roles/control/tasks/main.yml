@@ -42,6 +42,7 @@
       - bash-completion
       - btop
       - curl
+      - discord
       - less
       - lib32-mesa
       - lib32-vulkan-radeon
