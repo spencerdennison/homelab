@@ -12,6 +12,6 @@
     state: started
 
 - name: configure boinc
-  ansible.builtin.serviceile:
+  ansible.builtin.service:
     path: /var/lib/boinc/gui_rpc_auth.cfg 
     line: 
